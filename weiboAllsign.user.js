@@ -63,7 +63,8 @@ autoSignbox.addEventListener('click', function () {
     GM_setValue('autoSignbox', document.getElementById("autoSign").checked);
 }, true);
 if (window.location.href.indexOf("weibo.com/") != -1) {
-    //添加按钮
+    //移除游戏，添加按钮
+    document.querySelector('li a[nm="game"]').parentNode.remove();
     document.getElementsByClassName('gn_nav_list')[0].appendChild(newEm);
     document.getElementsByClassName('gn_nav_list')[0].appendChild(autoSignbox);
     addStyle("#autoSign{margin:9px 0 0 0;} #allsign{margin:2px 0 0 30px}");
