@@ -10,6 +10,8 @@
 // @grant          GM_deleteValue
 // @grant          GM_xmlhttpRequest
 // @version        2017.8.8.0
+// @downloadURL    https://greasyfork.org/scripts/32143-weiboallsign/code/weiboAllsign.user.js
+// @namespace https://greasyfork.org/users/32143
 // ==/UserScript==
 
 
