@@ -1,17 +1,17 @@
 // ==UserScript==
 // @name           weiboAllsign
 // @description    超级话题集中签到，基于 congxz6688 的 tiebaAllsign ( https://greasyfork.org/scripts/152 )
-// @match        http://*.weibo.com/*
-// @match        http://weibo.com/*
+// @match          http://*.weibo.com/*
+// @match          http://weibo.com/*
 // @icon           http://www.weibo.com/favicon.ico
-// @author       xyau
+// @author         xyau
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_deleteValue
 // @grant          GM_xmlhttpRequest
-// @version        2017.8.8.0
+// @version        2017.8.8.1
 // @downloadURL    https://greasyfork.org/scripts/32143-weiboallsign/code/weiboAllsign.user.js
-// @namespace https://greasyfork.org/users/10290
+// @namespace      https://greasyfork.org/users/10290
 // ==/UserScript==
 
 
