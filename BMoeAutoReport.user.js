@@ -5,7 +5,7 @@
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @match        file:///*/201708*.txt
-// @include        http://bangumi.bilibili.com/moe/2017/*/index*a
+// @include        http://bangumi.bilibili.com/moe/2017/*/index*
 // @downloadURL       https://github.com/xyauhideto/bmoe/raw/master/BMoeAutoReport.user.js
 // @grant        none
 // ==/UserScript==
