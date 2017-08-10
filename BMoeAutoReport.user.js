@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.10.2
+// @version      2017.08.10.3
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @match        file:///*/201708*.txt
