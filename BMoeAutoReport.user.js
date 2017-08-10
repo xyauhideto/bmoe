@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.11.0
+// @version      2017.08.11.1
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @match        file:///*/201708*.txt
@@ -28,7 +28,6 @@ lj.push(['名侦探柯南',matchN(data,/11092,11196/g)+matchN(data,/11092,.*1108
 lj.push(['进击的巨人',matchN(data,/1718,.*284[543]/g)]);
 lj.push(['Rewrite',matchN(data,/1670,1665/g)]);
 lj.push(['黑子的篮球',matchN(data,/3496,.*3492/g)]);
-lj.push(['Rewrite',matchN(data,/1668,.*1664/g)]);
         // 每日变化部分结束
         var cha=[];
         id.forEach(function(e,n){
