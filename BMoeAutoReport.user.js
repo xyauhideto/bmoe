@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.12.3
+// @version      2017.08.12.4
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @match        file:///*/201708*.txt
@@ -224,7 +224,7 @@ function matchN(d, a) {
                     });
                 });
                 var reWin = window.open('', '', 'width = 480, height = 640');
-                reWin.document.body.innerHTML = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m) + '<br>' + All + ', ' + Inc) : '') + s;
+                reWin.document.body.innerHTML = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m) + '<br>' + All + '|' + Inc) : '') + s;
                 reWin.document.title = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) : '');
                 reWin.document.close();
                 // 输出结果分析用参数
