@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.12.1
+// @version      2017.08.12.2
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @match        file:///*/201708*.txt
@@ -20,30 +20,30 @@ function matchN(d, a) {
     if (/txt/.test(url)) {
         // 投票记录报榜
         data = document.body.innerText;
-        var lj = [];
+        var [total, lj] = [data.match(/,[0,1],/g).length, []];
 
         // 每日变化部分开始
-        var s = "本战128进32 DAY5<br>总数,真爱,单投";
+        var s = "本战128进32 DAY5\t" + total + "人次<br>总数|真爱|单投|被投率";
         var id = [1645, 2993, 1313, 1662, 2997, 1661, 1754, 1716, 3170, 1591, 3154, 1253, 1590, 3006, 1046, 11057, 2841, 3328, 3470, 2574, 3450, 2201, 10933, 11093, 10908, 11313, 1965, 3453, 2656, 2233, 3448, 3299, ];
         var ch = ["才川莉子", "米特奥拉·艾斯特莱希", "泉镜花", "鸥端海苔子(最可)", "阿尔泰尔", "皆川茜", "露米娅·廷格尔", "希斯特莉亚·雷斯", "大和", "班长", "金刚", "夏目玲子", "白羽·菈菲尔·恩兹沃斯", "高砂智惠", "照桥心美", "丙", "柯尼·史普林格", "威廉·克梅修", "茅场晶彦", "松野空松", "格雷尔·沙多克里夫", "药研藤四郎", "琴酒", "高木涉", "自来也", "矶贝悠马", "燃堂力", "斯内克", "老板", "山姥切国广", "夏尔·凡多姆海威", "弥勒寺优夜", ];
         var gnm = ["女子32A2", "女子32B2", "女子32E2", "女子32F2", "男子32A2", "男子32B2", "男子32E2", "男子32F2", ];
-        lj.push(["Re:CREATORS:米特奥拉·艾斯特莱希,阿尔泰尔", matchN(data, /2993,.*2997/g)]);
-        lj.push(["Re:CREATORS:米特奥拉·艾斯特莱希,弥勒寺优夜", matchN(data, /2993,.*3299/g)]);
-        lj.push(["Re:CREATORS:米特奥拉·艾斯特莱希,阿尔泰尔,弥勒寺优夜", matchN(data, /2993,.*2997,.*3299/g)]);
-        lj.push(["人渣的本愿:鸥端海苔子(最可),皆川茜", matchN(data, /1662,.*1661/g)]);
-        lj.push(["Re:CREATORS:阿尔泰尔,弥勒寺优夜", matchN(data, /2997,.*3299/g)]);
-        lj.push(["进击的巨人 第二季:希斯特莉亚·雷斯,柯尼·史普林格", matchN(data, /1716,.*2841/g)]);
-        lj.push(["珈百璃的堕落:班长,白羽·菈菲尔·恩兹沃斯", matchN(data, /1591,.*1590/g)]);
-        lj.push(["珈百璃的堕落:班长,老板", matchN(data, /1591,.*2656/g)]);
-        lj.push(["珈百璃的堕落:班长,白羽·菈菲尔·恩兹沃斯,老板", matchN(data, /1591,.*1590,.*2656/g)]);
-        lj.push(["夏目友人帐 伍:夏目玲子,丙", matchN(data, /1253,.*11057/g)]);
-        lj.push(["珈百璃的堕落:白羽·菈菲尔·恩兹沃斯,老板", matchN(data, /1590,.*2656/g)]);
-        lj.push(["齐木楠雄的灾难:照桥心美,燃堂力", matchN(data, /1046,.*1965/g)]);
-        lj.push(["黑执事 Book of the Atlantic:格雷尔·沙多克里夫,斯内克", matchN(data, /3450,.*3453/g)]);
-        lj.push(["黑执事 Book of the Atlantic:格雷尔·沙多克里夫,夏尔·凡多姆海威", matchN(data, /3450,.*3448/g)]);
-        lj.push(["黑执事 Book of the Atlantic:格雷尔·沙多克里夫,斯内克,夏尔·凡多姆海威", matchN(data, /3450,.*3453,.*3448/g)]);
-        lj.push(["刀剑乱舞-花丸-:药研藤四郎,山姥切国广", matchN(data, /2201,.*2233/g)]);
-        lj.push(["黑执事 Book of the Atlantic:斯内克,夏尔·凡多姆海威", matchN(data, /3453,.*3448/g)]);
+        lj.push(["Re: CREATORS: 米特奥拉·艾斯特莱希, 阿尔泰尔", matchN(data, /2993, .*2997/g)]);
+        lj.push(["Re: CREATORS: 米特奥拉·艾斯特莱希, 弥勒寺优夜", matchN(data, /2993, .*3299/g)]);
+        lj.push(["Re: CREATORS: 米特奥拉·艾斯特莱希, 阿尔泰尔, 弥勒寺优夜", matchN(data, /2993, .*2997, .*3299/g)]);
+        lj.push(["人渣的本愿: 鸥端海苔子(最可), 皆川茜", matchN(data, /1662, .*1661/g)]);
+        lj.push(["Re: CREATORS: 阿尔泰尔, 弥勒寺优夜", matchN(data, /2997, .*3299/g)]);
+        lj.push(["进击的巨人 第二季: 希斯特莉亚·雷斯, 柯尼·史普林格", matchN(data, /1716, .*2841/g)]);
+        lj.push(["珈百璃的堕落: 班长, 白羽·菈菲尔·恩兹沃斯", matchN(data, /1591, .*1590/g)]);
+        lj.push(["珈百璃的堕落: 班长, 老板", matchN(data, /1591, .*2656/g)]);
+        lj.push(["珈百璃的堕落: 班长, 白羽·菈菲尔·恩兹沃斯, 老板", matchN(data, /1591, .*1590, .*2656/g)]);
+        lj.push(["夏目友人帐 伍: 夏目玲子, 丙", matchN(data, /1253, .*11057/g)]);
+        lj.push(["珈百璃的堕落: 白羽·菈菲尔·恩兹沃斯, 老板", matchN(data, /1590, .*2656/g)]);
+        lj.push(["齐木楠雄的灾难: 照桥心美, 燃堂力", matchN(data, /1046, .*1965/g)]);
+        lj.push(["黑执事 Book of the Atlantic: 格雷尔·沙多克里夫, 斯内克", matchN(data, /3450, .*3453/g)]);
+        lj.push(["黑执事 Book of the Atlantic: 格雷尔·沙多克里夫, 夏尔·凡多姆海威", matchN(data, /3450, .*3448/g)]);
+        lj.push(["黑执事 Book of the Atlantic: 格雷尔·沙多克里夫, 斯内克, 夏尔·凡多姆海威", matchN(data, /3450, .*3453, .*3448/g)]);
+        lj.push(["刀剑乱舞-花丸-: 药研藤四郎, 山姥切国广", matchN(data, /2201, .*2233/g)]);
+        lj.push(["黑执事 Book of the Atlantic: 斯内克, 夏尔·凡多姆海威", matchN(data, /3453, .*3448/g)]);
         // 每日变化部分结束
 
         var cha = [];
@@ -85,16 +85,16 @@ function matchN(d, a) {
             All += gAll;
             Tl += gTl;
             Sg += gSg;
-            s += '\t' + [gAll, gTl, gSg];
+            s += '\t' + [gAll, gTl, gSg, Math.floor((gAll - gTl) / total *10000) / 100 + '%'].join(', ');
             var gRe = e.result.sort(function(a, b) {
                 return b.all - a.all;
             });
             gRe.forEach(function(e) {
-                s += '<br>' + [e.all, e.truelove, e.single] + '\t' + e.nm;
+                s += '<br>' + [e.all, e.truelove, e.single, Math.floor((e.all - e.truelove) / total *10000) / 100 + '%'].join(', ') + '\t' + e.nm;
             });
         });
         i = s.indexOf('.');
-        s = s.slice(0, i).concat([All, Tl, Sg] + '<br>', s.slice(i));
+        s = s.slice(0, i).concat([All, Tl, Sg].join(', ') + '<br>', s.slice(i));
         s += '<br>.<br>连击';
         lj.sort(function(a, b) {
             return b[1] - a[1];
@@ -114,7 +114,6 @@ function matchN(d, a) {
             var ddif = d.getTime() - dp.getTime();
             // 判定是否开赛
             var isVote = ddif >= 0;
-            debugger;
             // 判定页面加载完成
             if ((isVote && document.querySelector('.myvote-content')) || (document.querySelector('.male .role-item') && document.querySelector('.female .role-item'))) {
                 var h, m, voted;
@@ -163,11 +162,11 @@ function matchN(d, a) {
                     i = 0;
                     gid.forEach(function(e) {
                         xhr.open('GET', 'http://bangumi.bilibili.com/moe/2017/' + areaId + '/api/schedule/ranking/' + e[0], false);
-                        xhr.send();
+                        xhr.send();debugger;
                         JSON.parse(xhr.responseText).result.forEach(function(e) {
                             result[i].id = e.character_id;
                             result[i].name = e.chn_name;
-                            result[i].bgm = e.seasons.title;
+                            result[i].bgm = e.seasons[0].title;
                             result[i].per = e.ballot_ratio / 100 + '%';
                             result[i].all = e.ballot_sum;
                             result[i].inc = e.ballot_num;
@@ -225,11 +224,11 @@ function matchN(d, a) {
                     });
                 });
                 var reWin = window.open('', '', 'width = 480, height = 640');
-                reWin.document.body.innerHTML = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m) + '<br>' + All + '|' + Inc) : '') + s;
+                reWin.document.body.innerHTML = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m) + '<br>' + All + ', ' + Inc) : '') + s;
                 reWin.document.title = dayTitle + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) : '');
                 reWin.document.close();
                 // 输出结果分析用参数
-                var [ss, ch, lj] = ['\r\nvar s = "' + dayTitle + '<br>总数,真爱,单投";\r\nvar id = [', '];\r\nvar ch = [', '];'];
+                var [ss, ch, lj] = ['\r\nvar s = "' + dayTitle + '\\t" + total + "人次<br>总数, 真爱, 单投, 被投率";\r\nvar id = [', '];\r\nvar ch = [', '];'];
                 result.forEach(function(e) {
                     ss += e.id + ',';
                     ch += '"' + e.name + '", ';
@@ -252,24 +251,24 @@ function matchN(d, a) {
                                     }
                                     if (id.length > 1) {
                                         ljs.push([
-                                            [name[0], eee.name].join(), [id[0], '.*' + eee.id].join()
+                                            [name[0], eee.name].join(', '), [id[0], '.*' + eee.id].join()
                                         ]);
                                         for (i = 1; i < id.length - 1; i++) {
                                             for (var k = 0; k < id.length - i; k++) {
                                                 var [ids, names] = [id.slice(i), name.slice(i)];
-                                                ljs.push([name.slice(0, i).concat(names.splice(k, 1), eee.name).join(), id.slice(0, i).concat(ids.splice(k, 1), '.*' + eee.id).join()]);
+                                                ljs.push([name.slice(0, i).concat(names.splice(k, 1), eee.name).join(', '), id.slice(0, i).concat(ids.splice(k, 1), '.*' + eee.id).join()]);
                                             }
                                         }
                                     }
                                     id.push('.*' + eee.id);
                                     name.push(eee.name);
-                                    ljs.push([name.join(), id.join()]);
+                                    ljs.push([name.join(', '), id.join()]);
                                     j = nn;
                                 }
                             });
                         });
                         ljs.forEach(function(el) {
-                            lj += '\r\nlj.push(["' + e.bgm + ':' + el[0] + '", matchN(data,/' + el[1] + '/g)]);';
+                            lj += '\r\nlj.push(["' + e.bgm + ': ' + el[0] + '", matchN(data,/' + el[1] + '/g)]);';
                         });
                     });
                 });
