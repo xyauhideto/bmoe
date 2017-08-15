@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.15.1
+// @version      2017.08.16.0
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @include        /file:\/\/\/.*/201708\d+\.txt/
@@ -43,7 +43,7 @@ function sum(e, p) {
             var [gid, name] = e[0].split(',');
             var ch = e[1].split('; ').map(function(e) {
                 if (!isHX)
-                    e = e.split(':')[1];
+                    e = e.replace(/^\d+:/,'');
                 var [cid, name, bgm] = e.split(',');
                 return {
                     id: cid,
@@ -103,8 +103,8 @@ function sum(e, p) {
                     for (var n in idn) {
                         var tt = t.splice(0, idn[n].length);
                         if (!isHX && tt.reduce(function(s, e) {
-                                return s + Number(e);
-                            }, 0) > 1)
+                            return s + Number(e);
+                        }, 0) > 1)
                             continue;
                         for (var m in idn[n]) {
                             if (tt[m] == '1') {
@@ -115,10 +115,10 @@ function sum(e, p) {
                         }
                     }
                     if (ids.length > 1 && e.lj.findIndex(function(e) {
-                            return e.length == ids.length && ids.every(function(ee) {
-                                return e.indexOf(ee) > -1;
-                            });
-                        }) == -1) {
+                        return e.length == ids.length && ids.every(function(ee) {
+                            return e.indexOf(ee) > -1;
+                        });
+                    }) == -1) {
                         e.lj.push([ids, 0]);
                     }
                 }
@@ -162,8 +162,8 @@ function sum(e, p) {
                     e.all++;
                     e.lj.forEach(function(ee, n) {
                         if (ee[0].every(function(ee) {
-                                return chs.indexOf(ee) > -1;
-                            }))
+                            return chs.indexOf(ee) > -1;
+                        }))
                             e.lj[n][1]++;
                     });
                 }
@@ -399,21 +399,21 @@ function sum(e, p) {
 
         // 每日变化部分开始
         var s = "本战128进32 DAY7\t" + total + "人次<br>总数, 真爱, 单投, 被投率";
-        var id = [1640, 3093, 1181, 11186, 3002, 3042, 3038, 11141, 2992, 1593, 11374, 3145, 1641, 3004, 3037, 1298, 2743, 2600, 3412, 10876, 3373, 2214, 3494, 1969, 2847, 2198, 2327, 2379, 3466, 3491, 2210, 2770, ];
+        var id = [1640,3093,1181,11186,3002,3042,3038,11141,2992,1593,11374,3145,1641,3004,3037,1298,2743,2600,3412,10876,3373,2214,3494,1969,2847,2198,2327,2379,3466,3491,2210,2770,];
         var ch = ["小林", "奥寺美纪", "若菜羽衣", "黑魔导女孩", "和泉纱雾", "艾丝·华伦斯坦", "波岛出海", "和泉纱雾的母亲(初代埃罗芒阿老师)", "赛蕾嘉·尤比缇利亚", "千咲·塔普利斯·修格贝尔", "天女兽", "爱宕", "托尔", "千寿村征", "冰堂美智留", "黄前久美子", "泷谷真", "真壁政宗", "石田将也", "格伦·勒达斯", "杀老师", "加州清光", "绿间真太郎", "洼谷须亚莲", "阿明·阿诺德", "大和守安定", "田沼要", "埃德加·爱伦·坡", "桐人(桐谷和人)", "火神大我", "鲶尾藤四郎", "天王寺瑚太朗", ];
         var gnm = ["女子32A4", "女子32B4", "女子32E4", "女子32F4", "男子32A4", "男子32B4", "男子32E4", "男子32F4", ];
-        lj.push(["小林家的龙女仆: 小林, 托尔", matchN(data, /1640,.*1641/g)]);
-        lj.push(["小林家的龙女仆: 小林, 泷谷真", matchN(data, /1640,.*2743/g)]);
-        lj.push(["小林家的龙女仆: 小林, 托尔, 泷谷真", matchN(data, /1640,.*1641,.*2743/g)]);
-        lj.push(["埃罗芒阿老师: 和泉纱雾, 千寿村征", matchN(data, /3002,.*3004/g)]);
-        lj.push(["路人女主的养成方法 ♭: 波岛出海, 冰堂美智留", matchN(data, /3038,.*3037/g)]);
-        lj.push(["埃罗芒阿老师: 和泉纱雾的母亲(初代埃罗芒阿老师), 千寿村征", matchN(data, /11141,.*3004/g)]);
-        lj.push(["小林家的龙女仆: 托尔, 泷谷真", matchN(data, /1641,.*2743/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定", matchN(data, /2214,.*2198/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 鲶尾藤四郎", matchN(data, /2214,.*2210/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定, 鲶尾藤四郎", matchN(data, /2214,.*2198,.*2210/g)]);
-        lj.push(["黑子的篮球 LAST GAME: 绿间真太郎, 火神大我", matchN(data, /3494,.*3491/g)]);
-        lj.push(["刀剑乱舞-花丸-: 大和守安定, 鲶尾藤四郎", matchN(data, /2198,.*2210/g)]);
+        lj.push(["小林家的龙女仆: 小林, 托尔", matchN(data,/1640,.*1641/g)]);
+        lj.push(["小林家的龙女仆: 小林, 泷谷真", matchN(data,/1640,.*2743/g)]);
+        lj.push(["小林家的龙女仆: 小林, 托尔, 泷谷真", matchN(data,/1640,.*1641,.*2743/g)]);
+        lj.push(["埃罗芒阿老师: 和泉纱雾, 千寿村征", matchN(data,/3002,.*3004/g)]);
+        lj.push(["路人女主的养成方法 ♭: 波岛出海, 冰堂美智留", matchN(data,/3038,.*3037/g)]);
+        lj.push(["埃罗芒阿老师: 和泉纱雾的母亲(初代埃罗芒阿老师), 千寿村征", matchN(data,/11141,.*3004/g)]);
+        lj.push(["小林家的龙女仆: 托尔, 泷谷真", matchN(data,/1641,.*2743/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定", matchN(data,/2214,.*2198/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 鲶尾藤四郎", matchN(data,/2214,.*2210/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定, 鲶尾藤四郎", matchN(data,/2214,.*2198,.*2210/g)]);
+        lj.push(["黑子的篮球 LAST GAME: 绿间真太郎, 火神大我", matchN(data,/3494,.*3491/g)]);
+        lj.push(["刀剑乱舞-花丸-: 大和守安定, 鲶尾藤四郎", matchN(data,/2198,.*2210/g)]);
         // 每日变化部分结束
 
         var cha = [];
