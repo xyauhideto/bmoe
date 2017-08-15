@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.15.0
+// @version      2017.08.15.1
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析需每日调节参数。
 // @author       xyau
 // @include        /file:\/\/\/.*/201708\d+\.txt/
@@ -133,7 +133,7 @@ function sum(e, p) {
         }
         data = data.map(function(e) {
             var [nickname, type, vote] = e.split(',');
-            if (nickname.length < 3)[nickname, type, vote] = /^([^\d]\d{1,2}[^\d]),([01]),(\d+)$/g.exec(e).slice(1, 4);
+            if (nickname.length < 3)[nickname, type, vote] = /^([^\d]?\d{1,2}[^\d]?),([01]),(\d+)$/g.exec(e).slice(1, 4);
             vote = '0'.repeat(group.length - vote.length) + vote;
             var [chs, bgms] = [
                 [],
@@ -200,34 +200,34 @@ function sum(e, p) {
             }
             e.vper = Math.floor((e.all - e.truelove) / data.length * 10000);
         });
-        var s = title + '\t' + data.length + '人次<br>总数, 真爱, 单投, 被投率<br>' + [group.all, group.truelove, group.single].join(', ');
+        document.body.innerHTML = title + '\t' + data.length + '人次<br>总数, 真爱, 单投, 被投率<br>' + [group.all, group.truelove, group.single].join(', ');
         group.forEach(function(e) {
-            s += '<br>.<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
+            document.body.innerHTML += '<br>.<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
             var gRe = isHX ? e.ch.slice(0, 13) : e.ch.sort(function(a, b) {
                 return b.all - a.all;
             });
             gRe.forEach(function(e, n) {
-                s += '<br>' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ') + '\t' + e.name;
+                document.body.innerHTML += '<br>' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ') + '\t' + e.name;
             });
         });
-        s += '<br>.<br>番组连击';
+        document.body.innerHTML += '<br>.<br>番组连击';
         bgm.sort(function(a, b) {
             return b.all - a.all;
         });
         bgm.forEach(function(e) {
-            s += '<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
+            document.body.innerHTML += '<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
             e.lj.sort(function(a, b) {
                 return b[1] - a[1];
             });
             e.lj.forEach(function(e, n) {
-                s += '<br>' + e[1] + '\t' + e[0].map(function(e) {
+                document.body.innerHTML += '<br>' + e[1] + '\t' + e[0].map(function(e) {
                     return result.find(function(ee) {
                         return ee.id == e;
                     }).name;
                 }).join(', ');
             });
         });
-        document.write(s);
+        document.title = title + ' 投票记录分析';
     }
     // 赛程页报榜
     if (/schedule/.test(url)) {
