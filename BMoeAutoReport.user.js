@@ -29,6 +29,7 @@ function sum(e, p) {
 (function() {
     'use strict';
     var url = location.href;
+    var style = '<style type=\'text/css\'>body{font-size: 14px; border-collapse; padding-top: 14px;} .t{border-top: 1px solid #ddd; padding-top: 8px} .f{position:fixed; top: 0px; width: 100%; background:white; z-index:999}td:nth-child(odd) {background: #ddd}</style>';
     var i, j, data;
     if (/log/.test(url)) {
         // 投票记录报榜new
@@ -36,55 +37,91 @@ function sum(e, p) {
         var [title, duel_type] = data.shift().split('\t');
         var isHX = !duel_type;
         data.shift();
+        var [all, truelove, single, max_vote_num] = [0, 0, 0, 0];
+        // 读取赛程分组
         var group = data.splice(0, data.findIndex(function(e) {
-            return e.indexOf('% ') > -1;
+            return e.includes('% ');
         })).map(function(e) {
             e = e.split('\t');
-            var [gid, name] = e[0].split(',');
+            var [group_id, name, sex, vote_num] = e[0].split(',');
+            max_vote_num += vote_num;
             var ch = e[1].split('; ').map(function(e) {
                 if (!isHX)
-                    e = e.replace(/^\d+:/,'');
-                var [cid, name, bgm] = e.split(',');
+                    e = e.replace(/^\d+:/, '');
+                var [id, name, bangumi] = e.split(',');
                 return {
-                    id: cid,
+                    id: id,
                     name: name,
-                    bgm: bgm,
+                    sex: sex,
+                    bangumi: bangumi,
+                    gid: group_id,
                     all: 0,
+                    num: 0,
                     truelove: 0,
                     single: 0
                 };
             });
             return {
-                id: gid,
+                id: group_id,
                 name: name,
-                ch: ch
+                sex: sex,
+                vote_num: vote_num,
+                ch: ch,
+                all: 0,
+                num: 0,
+                truelove: 0,
+                single: 0
             };
         });
-        var bgm = group.reduce(function(bgm, e) {
-            e.ch.forEach(function(ec) {
-                i = bgm.findIndex(function(eb) {
-                    return eb.name == ec.bgm;
+        if (isHX) var ch = group.reduce(function(c, e) {
+            return c.concat(e.ch);
+        }, []);
+        else {
+            // 初始化性别大组
+            var sex = [];
+            sex.push({
+                name: '男子组',
+                all: 0,
+                num: 0,
+                truelove: 0,
+                single: 0
+            });
+            sex.push({
+                name: '女子组',
+                all: 0,
+                num: 0,
+                truelove: 0,
+                single: 0
+            });
+        }
+        // 分析番组阵营
+        var bangumi = group.reduce(function(bangumi, e) {
+            e.ch.forEach(function(e) {
+                i = bangumi.findIndex(function(eb) {
+                    return eb.name == e.bangumi;
                 });
                 if (i == -1) {
-                    bgm.push({
-                        name: ec.bgm,
-                        id: [ec.id],
-                        ch: [ec.name],
-                        gid: [e.id],
+                    bangumi.push({
+                        name: e.bangumi,
+                        id: [e.id],
+                        ch: [e.name],
+                        gid: [e.gid],
                         lj: [],
                         all: 0,
+                        num: 0,
                         truelove: 0,
                         single: 0
                     });
                 } else {
-                    bgm[i].id.push(ec.id);
-                    bgm[i].gid.push(e.id);
-                    bgm[i].ch.push(ec.name);
+                    bangumi[i].id.push(e.id);
+                    bangumi[i].gid.push(e.gid);
+                    bangumi[i].ch.push(e.name);
                 }
             });
-            return bgm;
+            return bangumi;
         }, []);
-        bgm.forEach(function(e) {
+        // 分析同番连击组合
+        bangumi.forEach(function(e) {
             if (e.id.length > 1) {
                 var idn = e.id.reduce(function(idn, ee, n) {
                     if (n > 0 && e.gid[n - 1] == e.gid[n]) {
@@ -103,8 +140,8 @@ function sum(e, p) {
                     for (var n in idn) {
                         var tt = t.splice(0, idn[n].length);
                         if (!isHX && tt.reduce(function(s, e) {
-                            return s + Number(e);
-                        }, 0) > 1)
+                                return s + Number(e);
+                            }, 0) > 1)
                             continue;
                         for (var m in idn[n]) {
                             if (tt[m] == '1') {
@@ -115,119 +152,151 @@ function sum(e, p) {
                         }
                     }
                     if (ids.length > 1 && e.lj.findIndex(function(e) {
-                        return e.length == ids.length && ids.every(function(ee) {
-                            return e.indexOf(ee) > -1;
-                        });
-                    }) == -1) {
+                            return e[0].length == ids.length && ids.every(function(ee) {
+                                return e[0].includes(ee);
+                            });
+                        }) == -1) {
                         e.lj.push([ids, 0]);
                     }
                 }
             }
         });
         data.shift();
+        // 移除文件末空数据
         while (1) {
             if (data[data.length - 1].length === 0)
                 data.pop();
             else
                 break;
         }
+        // 遍历记录计数
         data = data.map(function(e) {
             var [nickname, type, vote] = e.split(',');
-            if (nickname.length < 3)[nickname, type, vote] = /^([^\d]?\d{1,2}[^\d]?),([01]),(\d+)$/g.exec(e).slice(1, 4);
-            vote = '0'.repeat(group.length - vote.length) + vote;
-            var [chs, bgms] = [
+            if (!/,[01],/.test(e)) alert('记录' + e + '有误！');
+            if (isHX || !Array.from('01').includes(type))[nickname, type, vote] = /^(.*),([01]),((,?\d{2,})+)/g.exec(e).slice(1, 4);
+            vote = isHX ? vote.split(',') : '0'.repeat(group.length - vote.length) + vote;
+            var [characters, bangumis, groups, isTruelove, isSingle] = [
                 [],
-                []
+                [],
+                [],
+                Number(type),
+                (isHX ? vote : vote.replace(/0/g, '')).length == 1,
             ];
+            if (isTruelove) {
+                truelove++;
+            } else if (isSingle) single++;
+            if (!isHX) var sexs = [0, 0];
             Array.from(vote).forEach(function(e, n) {
                 if (e > 0) {
-                    var ee = group[n].ch.find(function(ee, nn) {
-                        if (nn + 1 == e) {
+                    var ee = (isHX ? ch : group[n].ch).find(function(ee, nn) {
+                        var isMatch = isHX ? ee.id : nn + 1 == e;
+                        if (isMatch) {
+                            if (!isHX) sexs[ee.sex]++;
                             ee.all++;
-                            if (Number(type)) {
+                            ee.num++;
+                            all++;
+                            if (isTruelove) {
                                 ee.truelove++;
                                 ee.all++;
-                            } else if (e * Math.pow(10, group.length - n - 1) == Number(vote)) {
-                                ee.single++;
-                            }
+                                all++;
+                            } else if (isSingle) ee.single++;
                         }
-                        return nn + 1 == e;
+                        return isMatch;
                     });
-                    chs.push(ee.id);
-                    if (bgms.indexOf(ee.bgm) == -1) bgms.push(ee.bgm);
+                    characters.push(ee.id);
+                    bangumis.push(ee.bangumi);
+                    groups.push(ee.gid);
                 }
             });
-            bgm.forEach(function(e) {
-                if (bgms.indexOf(e.name) > -1) {
-                    e.all++;
+            bangumi.forEach(function(e) {
+                if (bangumis.includes(e.name)) {
+                    e.all += bangumis.reduce(function(c, ee) {
+                        if (ee == e.name) c++;
+                        return c;
+                    }, 0);
+                    e.num++;
+                    if (isTruelove) {
+                        e.truelove++;
+                        e.all++;
+                    } else if (isSingle) e.single++;
                     e.lj.forEach(function(ee, n) {
                         if (ee[0].every(function(ee) {
-                            return chs.indexOf(ee) > -1;
-                        }))
-                            e.lj[n][1]++;
+                                return characters.includes(ee);
+                            })) e.lj[n][1]++;
                     });
                 }
             });
+            group.forEach(function(e) {
+                if (groups.includes(e.id)) {
+                    e.all += groups.reduce(function(c, ee) {
+                        if (ee == e.id) c++;
+                        return c;
+                    }, 0);
+                    e.num++;
+                    if (isTruelove) {
+                        e.truelove++;
+                        e.all++;
+                    } else if (isSingle) e.single++;
+                }
+            });
+            if (!isHX) {
+                sex.forEach(function(e, n) {
+                    if (sexs[n]) {
+                        e.all += sexs[n];
+                        e.num++;
+                        if (isTruelove) {
+                            e.truelove++;
+                            e.all++;
+                        } else if (isSingle) e.single++;
+                    }
+                });
+            }
             return {
                 nickname: nickname,
                 type: type,
                 vote: vote,
-                chs: chs,
-                bgm: bgm
+                characters: characters,
+                bangumis: bangumis
             };
         });
+        var s = '<table><thead><tr class = \'f\'><th>' + ['总票数', '真爱', '单投', '总人次', '被投率', title].join('</th><th>') + '</th></tr></thead><tbody><tr><td class = \'t\'>' + [all, truelove, single, data.length, '', '<b>总计</b>'].join('</td><td class = \'t\'>') + '</td></tr>';
+        if (!isHX) {
+            s += '<tr><td>' + sex.map(function(e) {
+                e.vper = Math.floor(e.num / data.length * 10000);
+                return [e.all, e.truelove, e.single, e.num, e.vper / 100 + '%'].join('</td><td>') + '</td><td>' + e.name;
+            }).join('</td></tr><tr><td>') + '</td></tr>';
+        }
         group.forEach(function(e) {
-            [e.all, e.truelove, e.single] = sum(e.ch, ['all', 'truelove', 'single']);
-            e.ch.forEach(function(e) {
-                e.vper = Math.floor((e.all - e.truelove) / data.length * 10000);
-            });
-            e.vper = Math.floor((e.all - e.truelove) / data.length * 10000);
-        });
-        [group.all, group.truelove, group.single] = sum(group, ['all', 'truelove', 'single']);
-        var result = group.reduce(function(c, e) {
-            return c.concat(e.ch);
-        }, []);
-        bgm.forEach(function(e) {
-            if (e.id.length > 1) {
-                [e.truelove, e.single] = sum(result.filter(function(ee) {
-                    return e.id.indexOf(ee.id) > -1;
-                }), ['truelove', 'single']);
-            } else {
-                var ee = result.find(function(ee) {
-                    return e.id == ee.id;
-                });
-                [e.all, e.truelove, e.single] = [ee.all, ee.truelove, ee.single];
-            }
-            e.vper = Math.floor((e.all - e.truelove) / data.length * 10000);
-        });
-        document.body.innerHTML = title + '\t' + data.length + '人次<br>总数, 真爱, 单投, 被投率<br>' + [group.all, group.truelove, group.single].join(', ');
-        group.forEach(function(e) {
-            document.body.innerHTML += '<br>.<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
+            e.vper = Math.floor(e.num / data.length * 10000);
             var gRe = isHX ? e.ch.slice(0, 13) : e.ch.sort(function(a, b) {
                 return b.all - a.all;
             });
-            gRe.forEach(function(e, n) {
-                document.body.innerHTML += '<br>' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ') + '\t' + e.name;
-            });
+            s += '<tr><td class = \'t\'>' + [e.all, e.truelove, e.single, e.num, e.vper / 100 + '%'].join('</td><td class = \'t\'>') + '<td class = \'t\'><b>' + e.name + '</b></td></td></tr><tr><td>' + gRe.map(function(e, n) {
+                e.vper = Math.floor(e.num / data.length * 10000);
+                return [e.all, e.truelove, e.single, e.num, e.vper / 100 + '%'].join('</td><td>') + '</td><td>' + e.name;
+            }).join('</td></tr><tr><td>') + '</td></tr>';
         });
-        document.body.innerHTML += '<br>.<br>番组连击';
-        bgm.sort(function(a, b) {
-            return b.all - a.all;
+        s += '<tr><td class = \'t\'>' + ['', '', '', '', '', '<b>番组连击</b>'].join('</td><td class = \'t\'>') + '</td></tr>';
+        bangumi.sort(function(a, b) {
+            return b.num - a.num;
         });
-        bgm.forEach(function(e) {
-            document.body.innerHTML += '<br>' + e.name + '\t' + [e.all, e.truelove, e.single, e.vper / 100 + '%'].join(', ');
+        bangumi.forEach(function(e) {
+            e.vper = Math.floor(e.num / data.length * 10000);
             e.lj.sort(function(a, b) {
                 return b[1] - a[1];
             });
-            e.lj.forEach(function(e, n) {
-                document.body.innerHTML += '<br>' + e[1] + '\t' + e[0].map(function(e) {
-                    return result.find(function(ee) {
-                        return ee.id == e;
-                    }).name;
-                }).join(', ');
-            });
+            s += '<tr><td class = \'t\'>' + [e.all, e.truelove, e.single, e.num, e.vper / 100 + '%'].join('</td><td class = \'t\'>') + '</td><td class = \'t\'>' + e.name + '</td></tr>' + (e.lj.length > 0 ? '<tr><td>' + e.lj.map(function(elj, n) {
+                elj.push(Math.floor(elj[1] / data.length * 10000));
+                return ['', '', '', elj[1], elj[2] / 100 + '%'].join('</td><td>') + '</td><td><i>' + elj[0].map(function(eid) {
+                    return e.ch[e.id.findIndex(function(e) {
+                        return eid == e;
+                    })];
+                }).join(', ') + '</i>';
+            }).join('</td></tr><tr><td>') + '</td></tr>' : '');
         });
+        document.body.innerHTML = s + '</tbody></table>';
         document.title = title + ' 投票记录分析';
+        document.head.innerHTML += style;
     }
     // 赛程页报榜
     if (/schedule/.test(url)) {
@@ -277,7 +346,7 @@ function sum(e, p) {
                     result.push({
                         id: e.href.split('/')[8],
                         name: e.innerText,
-                        bgm: $('.bangumi-wrapper')[n].innerText,
+                        bangumi: $('.bangumi-wrapper')[n].innerText,
                         per: isVote && voted ? $('.ticket-num-percentage')[n].innerText : '',
                         all: isVote && voted ? parseInt($('.ticket-num-all')[n].innerText) : 0,
                         inc: isVote && voted ? parseInt($('.ticket-num-increment')[n].innerText) : 0
@@ -322,24 +391,24 @@ function sum(e, p) {
                 }
                 var s = '';
                 group.forEach(function(e) {
-                    s += '<br>.<br>' + (isVote ? '' : e.id + '\t') + e.name + (isVote ? '\t' + e.all + '|' + e.inc : '');
                     var gRe = isHX ? (isVote ? e.result.slice(0, 13) : e.result) : (isVote ? e.result.sort(function(a, b) {
                         return b.all - a.all;
                     }) : e.result);
-                    gRe.forEach(function(e, n) {
+                    s += '<tr><td class="t">' + (isVote ? (isHX ? '</td><td class="t">' : '') : e.id + '</td><td class="t">') + (isVote ? [e.all, e.inc, '', ''].join('</td><td class="t">') + '</td>' : '') + '<td class="t"><b>' + e.name + '</b>' + '</td></tr><tr><td>' + gRe.map(function(e, n) {
                         var num, per;
-                        if (isVote)[num, per] = [e.all + '|' + e.inc, e.per + '|' + e.cper];
-                        s += '<br>' + (isVote ? (isHX ? ((n < 9 ? '0' : '') + (n + 1) + ':\t' + per + '\t' + num) : (num + '\t' + per)) : e.id) + '\t' + e.name + (isVote ? ((isHX ? ('\t' + e.bgm) : '') + (n === 0 ? '' : '\t' + (gRe[n - 1].all - e.all) + '|' + (gRe[n - 1].inc - e.inc))) : ('\t' + e.bgm));
-                    });
+                        if (isVote)[num, per] = [e.all + '</td><td>' + e.inc, e.per + '</td><td>' + e.cper];
+                        return (isVote ? (isHX ? [(n < 9 ? '0' : '') + (n + 1), per, num].join('</td><td>') : num + '</td><td>' + per) : e.id) + '</td><td>' + e.name + (isVote ? ((isHX ? ('\t' + e.bangumi) : '') + (n === 0 ? '' : '</td><td>' + (gRe[n - 1].all - e.all) + '</td><td>' + (gRe[n - 1].inc - e.inc))) : ('</td><td>' + e.bangumi)) + '</td></tr>';
+                    }).join('</td></tr><tr><td>') + '</td></tr>';
                 });
-                var reWin = window.open('', '', 'width = 480, height = 640');
-                reWin.document.body.innerHTML = title + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m) + '<br>' + group.all + '|' + group.inc) : '') + s;
+                var reWin = window.open('', '', 'width = 480, height = 800');
+                reWin.document.body.innerHTML = '<table><thead><tr>' + (isHX ? '<th>序号</th>' : '') + (isVote ? '' : '<th>ID</th>') + (isVote ? '<th colspan=2>' + (isHX ? ['得票率', '得票数'] : ['得票数', '得票率']).join('</th><th colspan=2>') + '</th>' : '') + '<th' + (isVote ? ' rowspan=2' : '') + '><b>' + title + '</b>' + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) + '</th><th colspan=2>票数差' : '') + '</th></tr>' + (isVote ? '<tr><th class="t">' + Array(3).fill('累积,时段').join().split(',').join('</th><th class="t">') + '</th></tr>' : '') + '</thead><tbody>' + (isVote ? '<tr><td>' + Array(isHX ? 1 : 0).concat(group.all, group.inc, Array(2), '<b>总计</b>', Array(isHX ? 1 : 0)).join('</td><td>') + '</td><td></td></tr>' : '') + s + '</tbody></table>';
                 reWin.document.title = title + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) : '');
+                reWin.document.head.innerHTML += style;
                 reWin.document.close();
                 // 输出结果分析用参数
                 console.log('var [title, duel_type, group] = ' + br([br(title, '\'\''), schedule.duel_type, '[]'], '[]') + ';\r\n' + group.map(function(e) {
-                    return 'group.push({id:' + e.id + ', name:' + br(e.name, '\'\'') + ', result:' + br(e.result.map(function(e) {
-                        return '{id:' + e.id + ', name:' + br(e.name, '\'\'') + ', bgm:' + br(e.bgm, '\'\'') + '}';
+                    return 'group.push({id:' + e.id + ', name:' + br(e.name, '\'\'') + ', sex:' + e.sex + ', vote_num:' + (isHX ? 8 : 1) + ', result:' + br(e.result.map(function(e) {
+                        return '{id:' + e.id + ', name:' + br(e.name, '\'\'') + ', bangumi:' + br(e.bangumi, '\'\'') + '}';
                     }), '[]') + '});';
                 }).join('\r\n'));
                 var [ss, ch, lj] = ['\r\nvar s = "' + title + '\\t" + total + "人次<br>总数, 真爱, 单投, 被投率";\r\nvar id = [', '];\r\nvar ch = [', '];'];
@@ -358,7 +427,7 @@ function sum(e, p) {
                         ];
                         group.slice(n + 1).forEach(function(ee, nn) {
                             ee.result.forEach(function(eee) {
-                                if (e.bgm == eee.bgm) {
+                                if (e.bangumi == eee.bangumi) {
                                     if (id.length > 1 && j == nn) {
                                         name.pop();
                                         id.pop();
@@ -382,7 +451,7 @@ function sum(e, p) {
                             });
                         });
                         ljs.forEach(function(el) {
-                            lj += '\r\nlj.push(["' + e.bgm + ': ' + el[0] + '", matchN(data,/' + el[1] + '/g)]);';
+                            lj += '\r\nlj.push(["' + e.bangumi + ': ' + el[0] + '", matchN(data,/' + el[1] + '/g)]);';
                         });
                     });
                 });
@@ -399,21 +468,21 @@ function sum(e, p) {
 
         // 每日变化部分开始
         var s = "本战128进32 DAY7\t" + total + "人次<br>总数, 真爱, 单投, 被投率";
-        var id = [1640,3093,1181,11186,3002,3042,3038,11141,2992,1593,11374,3145,1641,3004,3037,1298,2743,2600,3412,10876,3373,2214,3494,1969,2847,2198,2327,2379,3466,3491,2210,2770,];
+        var id = [1640, 3093, 1181, 11186, 3002, 3042, 3038, 11141, 2992, 1593, 11374, 3145, 1641, 3004, 3037, 1298, 2743, 2600, 3412, 10876, 3373, 2214, 3494, 1969, 2847, 2198, 2327, 2379, 3466, 3491, 2210, 2770, ];
         var ch = ["小林", "奥寺美纪", "若菜羽衣", "黑魔导女孩", "和泉纱雾", "艾丝·华伦斯坦", "波岛出海", "和泉纱雾的母亲(初代埃罗芒阿老师)", "赛蕾嘉·尤比缇利亚", "千咲·塔普利斯·修格贝尔", "天女兽", "爱宕", "托尔", "千寿村征", "冰堂美智留", "黄前久美子", "泷谷真", "真壁政宗", "石田将也", "格伦·勒达斯", "杀老师", "加州清光", "绿间真太郎", "洼谷须亚莲", "阿明·阿诺德", "大和守安定", "田沼要", "埃德加·爱伦·坡", "桐人(桐谷和人)", "火神大我", "鲶尾藤四郎", "天王寺瑚太朗", ];
         var gnm = ["女子32A4", "女子32B4", "女子32E4", "女子32F4", "男子32A4", "男子32B4", "男子32E4", "男子32F4", ];
-        lj.push(["小林家的龙女仆: 小林, 托尔", matchN(data,/1640,.*1641/g)]);
-        lj.push(["小林家的龙女仆: 小林, 泷谷真", matchN(data,/1640,.*2743/g)]);
-        lj.push(["小林家的龙女仆: 小林, 托尔, 泷谷真", matchN(data,/1640,.*1641,.*2743/g)]);
-        lj.push(["埃罗芒阿老师: 和泉纱雾, 千寿村征", matchN(data,/3002,.*3004/g)]);
-        lj.push(["路人女主的养成方法 ♭: 波岛出海, 冰堂美智留", matchN(data,/3038,.*3037/g)]);
-        lj.push(["埃罗芒阿老师: 和泉纱雾的母亲(初代埃罗芒阿老师), 千寿村征", matchN(data,/11141,.*3004/g)]);
-        lj.push(["小林家的龙女仆: 托尔, 泷谷真", matchN(data,/1641,.*2743/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定", matchN(data,/2214,.*2198/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 鲶尾藤四郎", matchN(data,/2214,.*2210/g)]);
-        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定, 鲶尾藤四郎", matchN(data,/2214,.*2198,.*2210/g)]);
-        lj.push(["黑子的篮球 LAST GAME: 绿间真太郎, 火神大我", matchN(data,/3494,.*3491/g)]);
-        lj.push(["刀剑乱舞-花丸-: 大和守安定, 鲶尾藤四郎", matchN(data,/2198,.*2210/g)]);
+        lj.push(["小林家的龙女仆: 小林, 托尔", matchN(data, /1640,.*1641/g)]);
+        lj.push(["小林家的龙女仆: 小林, 泷谷真", matchN(data, /1640,.*2743/g)]);
+        lj.push(["小林家的龙女仆: 小林, 托尔, 泷谷真", matchN(data, /1640,.*1641,.*2743/g)]);
+        lj.push(["埃罗芒阿老师: 和泉纱雾, 千寿村征", matchN(data, /3002,.*3004/g)]);
+        lj.push(["路人女主的养成方法 ♭: 波岛出海, 冰堂美智留", matchN(data, /3038,.*3037/g)]);
+        lj.push(["埃罗芒阿老师: 和泉纱雾的母亲(初代埃罗芒阿老师), 千寿村征", matchN(data, /11141,.*3004/g)]);
+        lj.push(["小林家的龙女仆: 托尔, 泷谷真", matchN(data, /1641,.*2743/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定", matchN(data, /2214,.*2198/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 鲶尾藤四郎", matchN(data, /2214,.*2210/g)]);
+        lj.push(["刀剑乱舞-花丸-: 加州清光, 大和守安定, 鲶尾藤四郎", matchN(data, /2214,.*2198,.*2210/g)]);
+        lj.push(["黑子的篮球 LAST GAME: 绿间真太郎, 火神大我", matchN(data, /3494,.*3491/g)]);
+        lj.push(["刀剑乱舞-花丸-: 大和守安定, 鲶尾藤四郎", matchN(data, /2198,.*2210/g)]);
         // 每日变化部分结束
 
         var cha = [];
@@ -465,7 +534,7 @@ function sum(e, p) {
         });
         i = s.indexOf('.');
         s = s.slice(0, i).concat([All, Tl, Sg].join(', ') + '<br>', s.slice(i));
-        s += '<br>.<br>连击';
+        s += '<br><br>连击';
         lj.sort(function(a, b) {
             return b[1] - a[1];
         }).forEach(function(e) {
