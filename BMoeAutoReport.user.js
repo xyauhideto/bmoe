@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BMoeAutoReport
 // @namespace    https://greasyfork.org/users/10290
-// @version      2017.08.17.1
+// @version      2017.08.24.0
 // @description  b萌自动报榜。支持投票期未投票后台记录导出。投票记录分析旧版需手动修改赛程参数。
 // @author       xyau
 // @include        /file:\/\/\/.*/201708\d+\.txt/
@@ -404,7 +404,7 @@ function sum(e, p) {
                         return (isVote ? (isHX ? [(n < 9 ? '0' : '') + (n + 1), per, num].join('</td><td>') : num + '</td><td>' + per) : e.id) + '</td><td>' + e.name + (isVote ? ((isHX ? ('\t' + e.bangumi) : '') + (gRe[n - 1] ? '</td><td>' + (gRe[n - 1].all - e.all) + '</td><td>' + (gRe[n - 1].inc - e.inc) : '')) : ('</td><td>' + e.bangumi)) + '</td></tr>';
                     }).join('</td></tr><tr><td>') + '</td></tr>';
                 });
-                var reWin = window.open('', '', 'width = 600, height = 800');
+                var reWin = window.open('', '', 'width = 600, height = ' + Math.min(800, 28*(result.length + group.length + 3)));
                 reWin.document.body.innerHTML = '<table><thead><tr>' + (isHX ? '<th rowspan=2>序号</th>' : '') + (isVote ? '' : '<th>ID</th>') + (isVote ? '<th colspan=2>' + (isHX ? ['得票率', '得票数'] : ['得票数', '得票率']).join('</th><th colspan=2>') + '</th>' : '') + '<th' + (isVote ? ' row' : ' col') + 'span=2><b>' + title + '</b>' + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) + '</th><th colspan=2>票数差' : '') + '</th></tr>' + (isVote ? '<tr><th class="t">' + Array(3).fill('累积,时段').join().split(',').join('</th><th class="t">') + '</th></tr>' : '') + '</thead><tbody>' + (isVote ? '<tr><td>' + Array(isHX ? 1 : 0).concat(group.all, group.inc, Array(2), '<b>总计</b>', Array(isHX ? 1 : 0)).join('</td><td>') + '</td><td></td></tr>' : '') + s + '</tbody></table>';
                 reWin.document.title = title + (isVote ? ('\t' + h + ':' + (m < 1 ? '0' + m : m)) : '');
                 reWin.document.head.innerHTML += style;
